@@ -1,0 +1,12 @@
+{
+    "java.project.referencedLibraries": {
+        "include": [
+            "lib/**/*.jar"
+        ],
+        "exclude": [
+            "c:\\Users\\Genesys\\Documents\\BackEnd-Java\\LivePT\\Jars\\c3p0-0.9.5.4.jar",
+            "c:\\Users\\Genesys\\Documents\\BackEnd-Java\\LivePT\\Jars\\mchange-commons-java-0.2.16.jar",
+            "c:\\Program Files (x86)\\MySQL\\Connector J 8.0\\mysql-connector-java-8.0.29.jar"
+        ]
+    }
+}
