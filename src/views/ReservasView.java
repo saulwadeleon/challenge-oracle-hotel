@@ -181,6 +181,12 @@ public class ReservasView extends JFrame {
 		btnAgregarHuesped.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
 		JLabel lblGuardar_1 = new JLabel("...");
+		lblGuardar_1.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				agregarNvoHuesped();
+			}
+		});
 		lblGuardar_1.setToolTipText("Registrar Huesped");
 		lblGuardar_1.setHorizontalAlignment(SwingConstants.CENTER);
 		lblGuardar_1.setForeground(Color.WHITE);
