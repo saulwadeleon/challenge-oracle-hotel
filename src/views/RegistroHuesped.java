@@ -130,6 +130,7 @@ public class RegistroHuesped extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				MenuUsuario menuUsuario = new MenuUsuario(connectionFactory);
 				menuUsuario.setVisible(true);
+				dispose();
 			}
 
 			@Override

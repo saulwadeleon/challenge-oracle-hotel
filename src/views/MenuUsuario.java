@@ -145,8 +145,8 @@ public class MenuUsuario extends JFrame {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				// RegistroHuesped huespedes = new RegistroHuesped(connectionFactory);
-				// huespedes.setVisible(true);
+				RegistroHuesped huespedes = new RegistroHuesped(connectionFactory);
+				huespedes.setVisible(true);
 				dispose();
 			}
 		});
