@@ -34,6 +34,8 @@ El proyecto también incluye tablas adicionales en la base de datos para agregar
 
 Además de las características principales, el sistema cuenta con funcionalidades adicionales:
 
+- Se creo un metodo para generar un número de reservacion automatico y aleatorio en lugar de utilizar el id de la reserva.
+
 - Doble clic para editar registros en la pantalla de búsqueda de huéspedes y reservas.
 
 - Búsqueda de huéspedes antes de realizar una reserva, con la opción de agregar uno nuevo si no está registrado.
@@ -43,6 +45,12 @@ Además de las características principales, el sistema cuenta con funcionalidad
 - Autenticación de usuarios directamente en la base de datos utilizando un hash para contraseñas.
 
 ## Capturas de Pantalla
+![image](https://github.com/saulwadeleon/challenge-oracle-hotel/assets/128748724/b0f8047f-74a1-401c-8ef8-9b2affad5921)
+![image](https://github.com/saulwadeleon/challenge-oracle-hotel/assets/128748724/0fc6e210-0eda-423c-9219-9d70be187749)
+![image](https://github.com/saulwadeleon/challenge-oracle-hotel/assets/128748724/8dbf61d2-417b-4b1f-bddf-ef156b9b3ce6)
+![image](https://github.com/saulwadeleon/challenge-oracle-hotel/assets/128748724/cd534a18-d316-46b7-87b7-1aac6b870bf6)
+
+
 
 ## Cómo Ejecutar
 
