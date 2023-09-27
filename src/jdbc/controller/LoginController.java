@@ -30,8 +30,8 @@ public class LoginController {
     private UsuarioDAO usuarioDAO;
     private ConnectionFactory connectionFactory;
 
-    public LoginController(ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+    public LoginController(ConnectionFactory conexion) {
+        connectionFactory = conexion;
         usuarioDAO = new UsuarioDAO(connectionFactory);
     }
 

@@ -7,7 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import jdbc.factory.ConnectionFactory;
 import jdbc.modelo.Huespedes;
 
@@ -60,6 +63,27 @@ public class HuespedesDAO {
 		}
 	}
 
+	public Map<String, Integer> obtenerHuespedes() {
+		Map<String, Integer> huespedes = new HashMap<>();
+		try (Connection connection = connectionFactory.recuperarConexion()) {
+			String sql = "SELECT id_huesped, nombre_completo FROM vista_nombreCompleto_huesped";
+			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
+				pstm.execute();
+				try (ResultSet rst = pstm.getResultSet()) {
+					while (rst.next()) {
+						int idHuesped = rst.getInt("id_huesped");
+						String nombreCompleto = rst.getString("nombre_completo");
+						huespedes.put(nombreCompleto, idHuesped);
+					}
+				}
+			}
+			return huespedes;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
 	public List<Huespedes> buscarId(String id) {
 		List<Huespedes> huespedes = new ArrayList<Huespedes>();
 		try (Connection connection = connectionFactory.recuperarConexion()) {
@@ -76,6 +100,52 @@ public class HuespedesDAO {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public Huespedes obtenerHuespedPorId(int id) {
+		Huespedes huesped = null;
+		try (Connection connection = connectionFactory.recuperarConexion()) {
+			String sql = "SELECT nombre_huesped, aprellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes WHERE id_huesped = ?";
+			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
+				pstm.setInt(1, id); // Establece el valor del parámetro ID
+				try (ResultSet rs = pstm.executeQuery()) {
+					if (rs.next()) {
+						// Recupera los datos del huésped de la consulta
+						String nombre = rs.getString("nombre_huesped");
+						String apellido = rs.getString("aprellido_huesped");
+						Date fechaNacimiento = rs.getDate("fechaNacimiento_huesped");
+						int nacionalidad = rs.getInt("nacionalidad_id");
+						String email = rs.getString("email_huesped");
+						String telefono = rs.getString("telefono_huesped");
+
+						// Crea un objeto Huespedes con los datos recuperados
+						huesped = new Huespedes(id, nombre, apellido, fechaNacimiento, nacionalidad, email, telefono);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return huesped;
+	}
+
+	public String obtenerNombreHuesped(int id) {
+		String nombre = null;
+		try (Connection connection = connectionFactory.recuperarConexion()) {
+			String sql = "SELECT nombre_huesped FROM huespedes WHERE id_huesped = ?";
+			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
+				pstm.setInt(1, id); // Establece el valor del parámetro ID
+				try (ResultSet rs = pstm.executeQuery()) {
+					if (rs.next()) {
+						// Recupera los datos del huésped de la consulta
+						nombre = rs.getString("nombre_huesped");
+					}
+				}
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return nombre;
 	}
 
 	public void Actualizar(String nombre, String apellido, Date fechaN, Integer nacionalidad, String email,
@@ -146,4 +216,5 @@ public class HuespedesDAO {
 			throw new RuntimeException(e);
 		}
 	}
+
 }

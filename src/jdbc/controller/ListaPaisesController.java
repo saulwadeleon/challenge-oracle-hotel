@@ -18,4 +18,8 @@ public class ListaPaisesController {
         return new ListaPaises(paisesMap);
     }
 
+    public String obtenerNombrePais(int idPais) {
+        return listaPaisesDAO.obtenerNombrePais(idPais);
+    }
+
 }

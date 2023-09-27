@@ -42,7 +42,8 @@ public class ConnectionFactory implements AutoCloseable {
     public ConnectionFactory() {
         ComboPooledDataSource comboPooledDataSource = new ComboPooledDataSource();
         comboPooledDataSource
-                .setJdbcUrl("jdbc:mysql://172.16.3.131:3306/hotelalura?useTimezone=true&serverTimezone=UTC");
+                // .setJdbcUrl("jdbc:mysql://192.168.152.128:3306/hotelalura?useTimezone=true&serverTimezone=UTC");
+                .setJdbcUrl("jdbc:mysql://172.16.3.132:3306/hotelalura?useTimezone=true&serverTimezone=UTC");
         comboPooledDataSource.setUser("Alura");
         comboPooledDataSource.setPassword("aluraLatam1234");
 

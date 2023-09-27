@@ -5,8 +5,6 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -18,28 +16,23 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-
+import javax.swing.plaf.basic.BasicComboBoxEditor;
 import com.toedter.calendar.JDateChooser;
 
+import jdbc.controller.FormaPagoController;
 import jdbc.controller.HuespedesController;
 import jdbc.controller.ReservasController;
 import jdbc.controller.TipoHabitacionController;
 import jdbc.factory.ConnectionFactory;
+import jdbc.modelo.Huespedes;
 import jdbc.modelo.Reserva;
 
+/**
+ * @wbp.parser.constructor
+ */
 public class ReservasView extends JFrame {
 
 	private JPanel contentPane;
@@ -48,19 +41,26 @@ public class ReservasView extends JFrame {
 	public static JDateChooser txtFechaE;
 	public static JDateChooser txtFechaS;
 	public static JComboBox<String> txtFormaPago;
-	private Map<String, Integer> tiposHabitacionMap;
-	private Map<String, Integer> formasPagoMap;
 	int xMouse, yMouse;
 	private JLabel labelExit;
 	private JLabel labelAtras;
 
+	private Map<String, Integer> tiposHabitacionMap;
+	private Map<String, Integer> formasPagoMap;
+	private Map<String, Integer> huespedMap;
 	private ConnectionFactory connectionFactory;
 	private ReservasController reservasController;
 	private TipoHabitacionController tipoHabitacionController;
 	private HuespedesController huespedesController;
+	private FormaPagoController formaPagoController;
 
-	private JTextField txtHuesped;
+	private JComboBox<String> txtHuesped;
 	private JTextField txtNumeroReserva;
+	private Integer nvoReservacioId;
+
+	JPanel btnGuardar;
+	JPanel btnActualizar;
+	JPanel btnAgregarCliente;
 
 	/**
 	 * Launch the application.
@@ -69,7 +69,7 @@ public class ReservasView extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					ConnectionFactory conexion = new ConnectionFactory();
+					ConnectionFactory conexion = new ConnectionFactory(); // Crea la instancia de ConnectionFactory
 					ReservasView frame = new ReservasView(conexion);
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -79,17 +79,31 @@ public class ReservasView extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 * 
-	 */
 	public ReservasView(ConnectionFactory conexion) {
-		this.connectionFactory = conexion;
+		connectionFactory = conexion;
+		inicializarVariables(connectionFactory);
+		initComponents(false);
+	}
+
+	public ReservasView(Huespedes huespedes, ConnectionFactory conexion) {
+		connectionFactory = conexion;
+		inicializarVariables(connectionFactory);
+		initComponents(true);
+		cargarHuesped(huespedes);
+	}
+
+	private void inicializarVariables(ConnectionFactory conexion) {
 		// Inicializar los controladores
 		reservasController = new ReservasController(connectionFactory);
 		tipoHabitacionController = new TipoHabitacionController(connectionFactory);
 		huespedesController = new HuespedesController(connectionFactory);
+		formaPagoController = new FormaPagoController(connectionFactory);
+	}
 
+	/**
+	 * Create the frame.
+	 */
+	private void initComponents(Boolean esEdicion) {
 		setIconImage(Toolkit.getDefaultToolkit().getImage(ReservasView.class.getResource("/imagenes/aH-40px.png")));
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -127,21 +141,43 @@ public class ReservasView extends JFrame {
 		panel.add(lblCliente);
 
 		// Campo para buscar y seleccionar huéspedes
-		txtHuesped = new JTextField();
+		txtHuesped = new JComboBox<>();
 		txtHuesped.setBounds(68, 100, 250, 35);
 		txtHuesped.setFont(new Font("Roboto", Font.PLAIN, 16));
 		panel.add(txtHuesped);
 
+		// Crear un modelo para el JComboBox
+		DefaultComboBoxModel<String> modeloComboBoxHuesped = new DefaultComboBoxModel<>();
+
+		// Obtener la lista de nombres de huéspedes desde el controlador
+		huespedMap = huespedesController.obtenerHuespedes();
+
+		// Agregar los nombres de huéspedes al modelo del JComboBox
+		modeloComboBoxHuesped.addAll(huespedMap.keySet());
+
+		// Asignar el modelo al JComboBox
+		txtHuesped.setModel(modeloComboBoxHuesped);
+
+		// Establecer el JComboBox como editable
+		txtHuesped.setEditable(true);
+
+		// Establecer un editor personalizado para el JComboBox
+		txtHuesped.setEditor(new BasicComboBoxEditor());
+
 		// Botón para agregar nuevo huésped junto al campo de búsqueda
-		JButton btnAgregarCliente = new JButton("+");
+		btnAgregarCliente = new JPanel();
 		btnAgregarCliente.setBounds(322, 100, 35, 35);
-		btnAgregarCliente.addActionListener(new ActionListener() {
+		panel.add(btnAgregarCliente);
+		btnAgregarCliente.setBackground(new Color(12, 138, 199));
+		btnAgregarCliente.setLayout(null);
+		btnAgregarCliente.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+		btnAgregarCliente.addMouseListener(new MouseAdapter() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				guardarHuesped();
+			public void mouseClicked(MouseEvent e) {
+				agregarNvoHuesped();
 			}
 		});
-		panel.add(btnAgregarCliente);
 
 		// Separador después del campo de cliente
 		JSeparator separatorCliente = new JSeparator();
@@ -169,7 +205,15 @@ public class ReservasView extends JFrame {
 		// Asignar el modelo al JComboBox
 		txtTipoHabitacion.setModel(modeloComboBoxTH);
 
+		// Establecer Habitación Doble como el valor predeterminado seleccionado
+		txtTipoHabitacion.setSelectedItem("Habitación Doble");
 		panel.add(txtTipoHabitacion);
+
+		txtTipoHabitacion.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+				calcularValor(txtFechaE, txtFechaS);
+			}
+		});
 
 		// Separador después del ComboBox de tipo de habitación
 		JSeparator separatorTipoHabitacion = new JSeparator();
@@ -237,6 +281,11 @@ public class ReservasView extends JFrame {
 		txtFechaE.setDateFormatString("yyyy-MM-dd");
 		txtFechaE.setFont(new Font("Roboto", Font.PLAIN, 16));
 		panel.add(txtFechaE);
+		txtFechaE.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+				calcularValor(txtFechaE, txtFechaS);
+			}
+		});
 
 		txtFechaS = new JDateChooser();
 		txtFechaS.getCalendarButton()
@@ -251,15 +300,8 @@ public class ReservasView extends JFrame {
 		txtFechaS.setBorder(new LineBorder(new Color(255, 255, 255), 0));
 		panel.add(txtFechaS);
 
-		txtFechaE.addPropertyChangeListener(new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent evt) {
-				validarFechas();
-			}
-		});
-
 		txtFechaS.addPropertyChangeListener(new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent evt) {
-				validarFechas();
 				calcularValor(txtFechaE, txtFechaS);
 			}
 		});
@@ -285,7 +327,7 @@ public class ReservasView extends JFrame {
 		DefaultComboBoxModel<String> modeloComboBox = new DefaultComboBoxModel<>();
 
 		// Obtener la lista de nombres de países desde el controlador
-		formasPagoMap = reservasController.metodosDePago();
+		formasPagoMap = formaPagoController.metodosDePago();
 
 		// Agregar los nombres de países al modelo del JComboBox
 		for (String formaPago : formasPagoMap.keySet()) {
@@ -294,6 +336,9 @@ public class ReservasView extends JFrame {
 
 		// Asignar el modelo al JComboBox
 		txtFormaPago.setModel(modeloComboBox);
+
+		// Establecer Tarjeta de Crédito como el valor predeterminado seleccionado
+		txtFormaPago.setSelectedItem("Tarjeta de crédito");
 		panel.add(txtFormaPago);
 
 		JSeparator separator_valorReserva = new JSeparator();
@@ -302,22 +347,22 @@ public class ReservasView extends JFrame {
 		separator_valorReserva.setBackground(SystemColor.textHighlight);
 		panel.add(separator_valorReserva);
 
-		JLabel lblSiguiente = new JLabel("SIGUIENTE");
-		lblSiguiente.setHorizontalAlignment(SwingConstants.CENTER);
-		lblSiguiente.setForeground(Color.WHITE);
-		lblSiguiente.setFont(new Font("Roboto", Font.PLAIN, 18));
-		lblSiguiente.setBounds(0, 0, 112, 35);
-
 		// Botón Siguiente
-		JPanel btnsiguiente = new JPanel();
-		btnsiguiente.setLayout(null);
-		btnsiguiente.setBackground(SystemColor.textHighlight);
-		btnsiguiente.setBounds(296, 514, 122, 35);
-		panel.add(btnsiguiente);
-		btnsiguiente.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnsiguiente.add(lblSiguiente);
+		btnGuardar = new JPanel();
+		btnGuardar.setLayout(null);
+		btnGuardar.setBackground(SystemColor.textHighlight);
+		btnGuardar.setBounds(296, 514, 122, 35);
+		btnGuardar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		panel.add(btnGuardar);
 
-		btnsiguiente.addMouseListener(new MouseAdapter() {
+		JLabel lblGuardar = new JLabel("Guardar");
+		lblGuardar.setHorizontalAlignment(SwingConstants.CENTER);
+		lblGuardar.setForeground(Color.WHITE);
+		lblGuardar.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblGuardar.setBounds(0, 0, 112, 35);
+		btnGuardar.add(lblGuardar);
+
+		btnGuardar.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if ((txtFechaE.getDate() != null && txtFechaS.getDate() != null)) {
@@ -327,6 +372,31 @@ public class ReservasView extends JFrame {
 				}
 			}
 		});
+
+		btnActualizar = new JPanel();
+		btnActualizar.setLayout(null);
+		btnActualizar.setBackground(SystemColor.textHighlight);
+		btnActualizar.setBounds(296, 514, 122, 35);
+		btnActualizar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		panel.add(btnActualizar);
+		btnActualizar.setVisible(false);
+		btnActualizar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if ((txtFechaE.getDate() != null && txtFechaS.getDate() != null)) {
+					actualizarReservacion();
+				} else {
+					JOptionPane.showMessageDialog(null, "Debes llenar todos los campos");
+				}
+			}
+		});
+
+		JLabel lblActualizar = new JLabel("Actualizar");
+		lblActualizar.setHorizontalAlignment(SwingConstants.CENTER);
+		lblActualizar.setForeground(Color.WHITE);
+		lblActualizar.setFont(new Font("Roboto", Font.PLAIN, 18));
+		lblActualizar.setBounds(0, 0, 112, 35);
+		btnActualizar.add(lblActualizar);
 
 		JLabel Logo = new JLabel("");
 		Logo.setBounds(197, 68, 104, 107);
@@ -444,73 +514,77 @@ public class ReservasView extends JFrame {
 
 	}
 
-	private void validarFechas() {
+	private boolean validarFechas(String fechaE, String fechaS) {
 		Date fechaEntrada = txtFechaE.getDate();
 		Date fechaSalida = txtFechaS.getDate();
-
-		if (fechaEntrada == null || fechaSalida == null) {
-			// Alguna de las fechas es nula, no hagas nada
-			return;
-		}
-
 		Calendar calEntrada = Calendar.getInstance();
 		calEntrada.setTime(fechaEntrada);
-
 		Calendar calSalida = Calendar.getInstance();
 		calSalida.setTime(fechaSalida);
 
-		if (calEntrada.after(calSalida) || calEntrada.equals(calSalida)) {
+		if (fechaE == null || fechaS == null) {
+			// Alguna de las fechas es nula
 			JOptionPane.showMessageDialog(null,
-					"La fecha de entrada debe ser anterior a la fecha de salida y tampoco se puede registrar una reserva con entrada y salida el mismo día.");
+					"Tienes que seleccionar la fecha de entrada y la fecha de salida para poder generar la reservación.");
+			return false;
+		}
+
+		if (calEntrada.after(calSalida) || fechaE.equals(fechaS)) {
+			JOptionPane.showMessageDialog(null,
+					"La fecha de entrada debe ser anterior a la fecha de salida. \nLa fecha de salida debe ser posterior a la fecha de entrada.");
 
 			txtFechaE.setDate(null);
 			txtFechaS.setDate(null);
+
+			return false;
+		} else {
+			return true;
 		}
+
 	}
 
 	private void guardarReserva() {
 		String fechaE = ((JTextField) txtFechaE.getDateEditor().getUiComponent()).getText();
 		String fechaS = ((JTextField) txtFechaS.getDateEditor().getUiComponent()).getText();
 
-		// Obtén el nombre del tipo de habitacion y forma de pago seleccionado
-		String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
-		String formaPagoSeleccionada = txtFormaPago.getSelectedItem().toString();
+		if (validarFechas(fechaE, fechaS)) {
 
-		// Obtén el ID del tipo de habitacion y forma de pago desde el mapa
-		Integer idTipoHabitacion = tiposHabitacionMap.get(tipoHabitacionSeleccionado);
-		Integer idFormaPago = formasPagoMap.get(formaPagoSeleccionada);
+			// Obtén el nombre del tipo de habitacion y forma de pago seleccionado
+			String nombreHuespedSeleccionado = txtHuesped.getSelectedItem().toString();
+			String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
+			String formaPagoSeleccionada = txtFormaPago.getSelectedItem().toString();
 
-		// Valida que el huesped exista en la tabla de huespedes
-		Integer idHuesped = Integer.parseInt(txtHuesped.getText());
-		boolean huespedExiste = huespedesController.existeHuesped(idHuesped);
-		if (!huespedExiste) {
-			JOptionPane.showMessageDialog(null,
-					"El huesped no existe. Para realizar una reserva, debe registrar un huesped");
-			return;
+			// Obtén el ID del tipo de habitacion y forma de pago desde el mapa
+			Integer idHuesped = huespedMap.get(nombreHuespedSeleccionado);
+			Integer idTipoHabitacion = tiposHabitacionMap.get(tipoHabitacionSeleccionado);
+			Integer idFormaPago = formasPagoMap.get(formaPagoSeleccionada);
+
+			// Valida que el huesped exista en la tabla de huespedes
+			boolean huespedExiste = huespedesController.existeHuesped(idHuesped);
+			if (!huespedExiste) {
+				JOptionPane.showMessageDialog(null,
+						"El huesped no existe. Para realizar una reserva, debe registrar un huesped");
+				return;
+			}
+
+			String numeroReservacion = generarNumeroReserva();
+			txtNumeroReserva.setText(numeroReservacion);
+
+			Reserva nuevaReserva = new Reserva(idHuesped,
+					idTipoHabitacion, java.sql.Date.valueOf(fechaE),
+					java.sql.Date.valueOf(fechaS),
+					txtValor.getText(), idFormaPago,
+					numeroReservacion);
+			reservasController.guardar(nuevaReserva);
+
+			Exito exito = new Exito();
+			exito.setVisible(true);
+			limpiarCampos();
 		}
 
-		String numeroReservacion = generarNumeroReserva();
-		txtNumeroReserva.setText(numeroReservacion);
-
-		Reserva nuevaReserva = new Reserva(idHuesped,
-				idTipoHabitacion, java.sql.Date.valueOf(fechaE),
-				java.sql.Date.valueOf(fechaS),
-				txtValor.getText(), idFormaPago,
-				numeroReservacion);
-		reservasController.guardar(nuevaReserva);
-
-		JOptionPane.showMessageDialog(null, "Registro Guardado con éxito con el número: " + numeroReservacion);
-
-		/*
-		 * // RegistroHuesped huesped = new RegistroHuesped(nuevaReserva.getId());
-		 * RegistroHuesped huesped = new RegistroHuesped();
-		 * huesped.setVisible(true);
-		 * dispose();
-		 */
-
-		Busqueda verReserva = new Busqueda(connectionFactory);
-		verReserva.setVisible(true);
-		dispose();
+		// Busqueda verReserva = new Busqueda(connectionFactory);
+		// verReserva.setVisible(true);
+		// dispose();
 	}
 
 	private void calcularValor(JDateChooser fechaE, JDateChooser fechaS) {
@@ -520,46 +594,29 @@ public class ReservasView extends JFrame {
 			int dias = -1; // Usamos -1 para contar a partir del día siguiente
 			double valor = 0;
 
-			while (inicio.before(fin) || inicio.equals(fin)) {
-				dias++;
-				inicio.add(Calendar.DATE, 1); // Días a ser aumentados
-			}
+			if (inicio.before(fin)) {
+				while (inicio.before(fin) || inicio.equals(fin)) {
+					dias++;
+					inicio.add(Calendar.DATE, 1); // Días a ser aumentados
+				}
 
-			// Obtener el tipo de habitación seleccionado
-			String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
+				// Obtener el tipo de habitación seleccionado
+				String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
 
-			// Obtener el precio de la habitación desde la base de datos
-			Map<String, Integer> tiposHabitacion = tipoHabitacionController.listarTipoHabitacion();
-			if (tiposHabitacion.containsKey(tipoHabitacionSeleccionado)) {
-				int idTipoHabitacion = tiposHabitacion.get(tipoHabitacionSeleccionado);
-				double precioHabitacion = tipoHabitacionController.obtenerPrecioHabitacion(idTipoHabitacion);
+				// Obtener el precio de la habitación desde la base de datos
+				Map<String, Integer> tiposHabitacion = tipoHabitacionController.listarTipoHabitacion();
+				if (tiposHabitacion.containsKey(tipoHabitacionSeleccionado)) {
+					int idTipoHabitacion = tiposHabitacion.get(tipoHabitacionSeleccionado);
+					double precioHabitacion = tipoHabitacionController.obtenerPrecioHabitacion(idTipoHabitacion);
 
-				valor = dias * precioHabitacion;
-				txtValor.setText("$" + valor);
-			} else {
-				txtValor.setText("Tipo de habitación no válido");
+					valor = dias * precioHabitacion;
+					txtValor.setText("$ " + valor);
+				} else {
+					txtValor.setText("Tipo de habitación no válido");
+				}
 			}
 		}
 	}
-
-	/*
-	 * private void calcularValor(JDateChooser fechaE, JDateChooser fechaS) {
-	 * if (fechaE.getDate() != null && fechaS.getDate() != null) {
-	 * Calendar inicio = fechaE.getCalendar();
-	 * Calendar fin = fechaS.getCalendar();
-	 * int dias = -1; // Usamos -1 para contar a partir del dia siguiente
-	 * int diaria = 500;
-	 * int valor;
-	 * 
-	 * while (inicio.before(fin) || inicio.equals(fin)) {
-	 * dias++;
-	 * inicio.add(Calendar.DATE, 1); // dias a ser aumentados
-	 * }
-	 * valor = dias * diaria;
-	 * txtValor.setText("$" + valor);
-	 * }
-	 * }
-	 */
 
 	// Funciones que permiten mover la ventana por la pantalla
 	private void headerMousePressed(java.awt.event.MouseEvent evt) {
@@ -573,55 +630,134 @@ public class ReservasView extends JFrame {
 		this.setLocation(x - xMouse, y - yMouse);
 	}
 
-	private void guardarHuesped() {
-		// ... (código para guardar el nuevo cliente)
-
-		// Obtén el huesped_id del cliente recién guardado (puedes obtenerlo de la base
-		// de datos)
-		// int huespedId = obtenerHuespedId(); // Reemplaza esto con la lógica real
-
-		// Notifica a ReservasView sobre el cliente guardado
-		// notificarClienteGuardado(huespedId);
-
-		// Cierra la ventana de RegistroHuesped
-		// dispose();
-	}
-
-	// Método para abrir la ventana de registro de huésped
-	private void abrirRegistroHuesped() {
-		RegistroHuesped registroHuesped = new RegistroHuesped(connectionFactory); // Pasa una referencia de ReservasView
-		registroHuesped.setVisible(true);
-	}
-
-	// Luego, puedes llamar a este método cuando el usuario haga clic en el botón
-	// "Agregar Cliente" o enlace similar
-	@SuppressWarnings("unused")
-	private void btnAgregarHuespedActionPerformed(ActionEvent evt) {
-		abrirRegistroHuesped();
-	}
-
 	private String generarNumeroReserva() {
-		// Obten la fecha actual
-		SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyyyyHHmmss");
-		String fechaActual = dateFormat.format(new Date());
-		String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
+		String numeroReserva = txtNumeroReserva.getText();
+		if (numeroReserva.isEmpty()) {
+			// Obten la fecha actual
+			SimpleDateFormat dateFormat = new SimpleDateFormat("ddMMyyyyHHmmss");
+			String fechaActual = dateFormat.format(new Date());
+			String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
 
-		// Obtén el ID del tipo de habitación seleccionado (reemplaza "idTipoHabitacion"
-		// con la variable real)
-		int idTipoHabitacion = tiposHabitacionMap.get(tipoHabitacionSeleccionado);
+			// Obtén el ID del tipo de habitación seleccionado (reemplaza "idTipoHabitacion"
+			// con la variable real)
+			int idTipoHabitacion = tiposHabitacionMap.get(tipoHabitacionSeleccionado);
 
-		// Genera una cadena aleatoria de 8 dígitos y letras
-		String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-		StringBuilder cadenaAleatoria = new StringBuilder();
-		Random rnd = new Random();
-		while (cadenaAleatoria.length() < 8) { // Longitud de 8 caracteres
-			int index = (int) (rnd.nextFloat() * caracteres.length());
-			cadenaAleatoria.append(caracteres.charAt(index));
+			// Genera una cadena aleatoria de 8 dígitos y letras
+			String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			StringBuilder cadenaAleatoria = new StringBuilder();
+			Random rnd = new Random();
+			while (cadenaAleatoria.length() < 8) { // Longitud de 8 caracteres
+				int index = (int) (rnd.nextFloat() * caracteres.length());
+				cadenaAleatoria.append(caracteres.charAt(index));
+			}
+
+			// Combina los elementos para formar el número de reserva
+			numeroReserva = fechaActual + idTipoHabitacion + cadenaAleatoria.toString();
 		}
-
-		// Combina los elementos para formar el número de reserva
-		String numeroReserva = fechaActual + idTipoHabitacion + cadenaAleatoria.toString();
 
 		return numeroReserva;
 	}
+
+	public void abrirVentanaEdicionReserva(int selectedIdReserva) {
+		this.nvoReservacioId = selectedIdReserva;
+		btnGuardar.setVisible(false);
+		btnActualizar.setVisible(true);
+
+		// Llamar a "huespedesController" para obtener un huésped por su ID.
+		Reserva reserva = reservasController.obtenerReservaPorId(nvoReservacioId);
+
+		// Obtén el nombre del huesped
+		Integer idHuesped = reserva.getHuesped_id();
+
+		String nombreHuespedSeleccionado = "";
+
+		for (Map.Entry<String, Integer> entry : huespedMap.entrySet()) {
+			if (entry.getValue().equals(idHuesped)) {
+				nombreHuespedSeleccionado = entry.getKey(); // Retorna el nombre del huésped correspondiente al ID
+			}
+		}
+
+		if (reserva != null) {
+			// Llena los campos de la ventana con los datos del huésped
+			// txtHuesped.setSelectedItem(reserva.getHuesped_id());
+			txtHuesped.setSelectedItem(nombreHuespedSeleccionado);
+			txtTipoHabitacion.setSelectedItem(reserva.getHabitacion_id());
+			txtFechaE.setDate(reserva.getFechaE());
+			txtFechaS.setDate(reserva.getFechaS());
+			txtValor.setText(reserva.getPrecioReserva());
+			txtFormaPago.setSelectedItem(reserva.getFormaPago());
+			txtNumeroReserva.setText(reserva.getNumeroReserva());
+
+			// Muestra la ventana de edición:
+			this.setVisible(true);
+		}
+
+	}
+
+	private void actualizarReservacion() {
+		// Obtén el nombre del tipo de habitacion y forma de pago seleccionado
+		String nombreHuespedSeleccionado = txtHuesped.getSelectedItem().toString();
+		String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
+		String formaPagoSeleccionada = txtFormaPago.getSelectedItem().toString();
+
+		// Obtén el ID del tipo de habitacion y forma de pago desde el mapa
+		Integer idHuesped = huespedMap.get(nombreHuespedSeleccionado);
+		Integer idTipoHabitacion = tiposHabitacionMap.get(tipoHabitacionSeleccionado);
+		Integer idFormaPago = formasPagoMap.get(formaPagoSeleccionada);
+
+		String fechaE = ((JTextField) txtFechaE.getDateEditor().getUiComponent()).getText();
+		String fechaS = ((JTextField) txtFechaS.getDateEditor().getUiComponent()).getText();
+		String valor = txtValor.getText();
+		String numeroReserva = txtNumeroReserva.getText();
+
+		this.reservasController.actualizar(idHuesped, idTipoHabitacion, java.sql.Date.valueOf(fechaE),
+				java.sql.Date.valueOf(fechaS), valor, idFormaPago,
+				numeroReserva, nvoReservacioId);
+		JOptionPane.showMessageDialog(this, String.format("Registro modificado con éxito"));
+
+		Busqueda busqueda = new Busqueda(connectionFactory);
+		busqueda.setVisible(true);
+		this.dispose();
+		this.setVisible(false);
+
+		btnGuardar.setVisible(true);
+		btnActualizar.setVisible(false);
+
+	}
+
+	private void agregarNvoHuesped() {
+		RegistroHuesped huespedRegistro = new RegistroHuesped(connectionFactory, true);
+		huespedRegistro.setVisible(true);
+		dispose();
+
+	}
+
+	private void cargarHuesped(Huespedes huesped) {
+		// Crear un modelo para el JComboBox
+		DefaultComboBoxModel<String> modeloComboBoxHuesped = new DefaultComboBoxModel<>();
+
+		// Obtener la lista de nombres de huéspedes desde el controlador
+		huespedMap = huespedesController.obtenerHuespedes();
+
+		// Agregar los nombres de huéspedes al modelo del JComboBox
+		modeloComboBoxHuesped.addAll(huespedMap.keySet());
+
+		// Asignar el modelo al JComboBox
+		txtHuesped.setModel(modeloComboBoxHuesped);
+
+		// Establecer el JComboBox como editable
+		txtHuesped.setSelectedItem(huespedesController.obtenerNombreHuesped(huesped.getId()));
+
+	}
+
+	private void limpiarCampos() {
+		txtHuesped.setSelectedItem(null);
+		txtTipoHabitacion.setSelectedItem(null);
+		txtFechaE.setDate(null);
+		txtFechaS.setDate(null);
+		txtValor.setText(null);
+		txtFormaPago.setSelectedItem(null);
+		txtNumeroReserva.setText(null);
+	}
+
 }

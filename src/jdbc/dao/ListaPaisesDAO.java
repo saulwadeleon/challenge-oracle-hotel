@@ -36,4 +36,23 @@ public class ListaPaisesDAO {
         }
     }
 
+    public String obtenerNombrePais(int idPais) {
+        String nombrePais = "";
+        try (Connection connection = connectionFactory.recuperarConexion()) {
+            String sql = "SELECT nombre_pais FROM pais WHERE id_pais = ?";
+            try (PreparedStatement pstm = connection.prepareStatement(sql)) {
+                pstm.setInt(1, idPais);
+                pstm.execute();
+                try (ResultSet rst = pstm.getResultSet()) {
+                    if (rst.next()) {
+                        nombrePais = rst.getString("nombre_pais");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return nombrePais;
+    }
+
 }

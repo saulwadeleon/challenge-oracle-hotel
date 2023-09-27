@@ -10,13 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 import jdbc.factory.ConnectionFactory;
@@ -52,7 +46,8 @@ public class MenuUsuario extends JFrame {
 	 * @param connectionFactory
 	 */
 	public MenuUsuario(ConnectionFactory conexion) {
-		this.connectionFactory = conexion;
+		connectionFactory = conexion;
+
 		setIconImage(Toolkit.getDefaultToolkit().getImage(MenuUsuario.class.getResource("/imagenes/aH-40px.png")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 944, 609);
@@ -150,8 +145,8 @@ public class MenuUsuario extends JFrame {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				RegistroHuesped huespedes = new RegistroHuesped(connectionFactory);
-				huespedes.setVisible(true);
+				// RegistroHuesped huespedes = new RegistroHuesped(connectionFactory);
+				// huespedes.setVisible(true);
 				dispose();
 			}
 		});
@@ -198,6 +193,11 @@ public class MenuUsuario extends JFrame {
 		contentPane.add(header);
 
 		JPanel btnexit = new JPanel();
+		btnexit.setLayout(null);
+		btnexit.setBackground(Color.WHITE);
+		btnexit.setBounds(891, 0, 53, 36);
+		header.add(btnexit);
+
 		btnexit.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -216,11 +216,6 @@ public class MenuUsuario extends JFrame {
 				labelExit.setForeground(Color.black);
 			}
 		});
-
-		btnexit.setLayout(null);
-		btnexit.setBackground(Color.WHITE);
-		btnexit.setBounds(891, 0, 53, 36);
-		header.add(btnexit);
 
 		labelExit = new JLabel("X");
 		labelExit.setBounds(0, 0, 53, 36);

@@ -20,7 +20,7 @@ public class TipoHabitacionDAO {
 	public Map<String, Integer> listarTipoHabitacion() {
 		Map<String, Integer> tiposHabitacion = new HashMap<>();
 		try (Connection connection = connectionFactory.recuperarConexion()) {
-			String sql = "SELECT id_tipo_habitacion, nombre_tipo_habitacion, precio_habitacion FROM tipos_habitaciones ORDER BY nombre_tipo_habitacion";
+			String sql = "SELECT id_tipo_habitacion, nombre_tipo_habitacion, precio_habitacion FROM tipos_habitaciones";
 			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
 				pstm.execute();
 				try (ResultSet rst = pstm.getResultSet()) {
@@ -46,6 +46,27 @@ public class TipoHabitacionDAO {
 				try (ResultSet rst = pstm.getResultSet()) {
 					if (rst.next()) {
 						return rst.getDouble("precio_habitacion");
+					} else {
+						// Manejar el caso en el que no se encuentre el tipo de habitación con el ID
+						// especificado.
+						throw new RuntimeException("Tipo de habitación no encontrado");
+					}
+				}
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public String obtenerNombreTipoHabitacion(int idTipoHabitacion) {
+		try (Connection connection = connectionFactory.recuperarConexion()) {
+			String sql = "SELECT nombre_tipo_habitacion FROM tipos_habitaciones WHERE id_tipo_habitacion = ?";
+			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
+				pstm.setInt(1, idTipoHabitacion);
+				pstm.execute();
+				try (ResultSet rst = pstm.getResultSet()) {
+					if (rst.next()) {
+						return rst.getString("nombre_tipo_habitacion");
 					} else {
 						// Manejar el caso en el que no se encuentre el tipo de habitación con el ID
 						// especificado.

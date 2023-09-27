@@ -7,9 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jdbc.factory.ConnectionFactory;
 import jdbc.modelo.Reserva;
@@ -17,8 +15,8 @@ import jdbc.modelo.Reserva;
 public class ReservaDAO {
 	private ConnectionFactory connectionFactory;
 
-	public ReservaDAO(ConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
+	public ReservaDAO(ConnectionFactory conexion) {
+		connectionFactory = conexion;
 	}
 
 	public void guardar(Reserva reserva) {
@@ -65,7 +63,7 @@ public class ReservaDAO {
 		}
 	}
 
-	public List<Reserva> buscarId(String numReserva) {
+	public List<Reserva> buscarPorNumReserva(String numReserva) {
 		List<Reserva> reservas = new ArrayList<Reserva>();
 		try (Connection connection = connectionFactory.recuperarConexion()) {
 			String sql = "SELECT id_reservas, huesped_id, habitacion_id, fecha_entrada, fecha_salida, precio_reserva, forma_pago_id, numero_reservacion FROM reservas WHERE numero_reservacion = ?";
@@ -80,6 +78,34 @@ public class ReservaDAO {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public Reserva obtenerReservaPorId(Integer idReserva) {
+		Reserva reserva = null;
+		try (Connection connection = connectionFactory.recuperarConexion()) {
+			String sql = "SELECT huesped_id, habitacion_id, fecha_entrada, fecha_salida, precio_reserva, forma_pago_id, numero_reservacion FROM reservas WHERE id_reservas = ?";
+			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
+				pstm.setInt(1, idReserva);
+				try (ResultSet rs = pstm.executeQuery()) {
+					if (rs.next()) {
+						int idHuesped = rs.getInt("huesped_id");
+						int idTipoHabitacion = rs.getInt("habitacion_id");
+						Date fechaInicio = rs.getDate("fecha_entrada");
+						Date fechaTermino = rs.getDate("fecha_salida");
+						String precioReserva = rs.getString("precio_reserva");
+						int formaPago = rs.getInt("forma_pago_id");
+						String numeroReserva = rs.getString("numero_reservacion");
+
+						// Crea un objeto Reservas con los datos recuperados
+						reserva = new Reserva(idHuesped, idTipoHabitacion, fechaInicio, fechaTermino, precioReserva,
+								formaPago, numeroReserva);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return reserva;
 	}
 
 	public void Eliminar(Integer id) {
@@ -98,7 +124,7 @@ public class ReservaDAO {
 		try (Connection connection = connectionFactory.recuperarConexion()) {
 			try (PreparedStatement stm = connection
 					.prepareStatement(
-							"UPDATE reservas SET huesped_id = ?, habitacion_id = ?, fecha_entrada = ?, fecha_salida = ?, precio_reserva = ?, forma_pago_id = ?, numero_reservacion = ? WHERE id = ?")) {
+							"UPDATE reservas SET huesped_id = ?, habitacion_id = ?, fecha_entrada = ?, fecha_salida = ?, precio_reserva = ?, forma_pago_id = ?, numero_reservacion = ? WHERE id_reservas = ?")) {
 				stm.setInt(1, huesped_id);
 				stm.setInt(2, habitacion_id);
 				stm.setDate(3, fechaE);
@@ -124,27 +150,6 @@ public class ReservaDAO {
 					reservas.add(produto);
 				}
 			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	// Método para obtener todas los metodos de pago desde la base de datos
-	public Map<String, Integer> listarMetodosDePago() {
-		Map<String, Integer> formasPago = new HashMap<>();
-		try (Connection connection = connectionFactory.recuperarConexion()) {
-			String sql = "SELECT id_formas_pago, dsc_forma_pago FROM formas_pago";
-			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
-				pstm.execute();
-				try (ResultSet rst = pstm.getResultSet()) {
-					while (rst.next()) {
-						int idFormaPago = rst.getInt("id_formas_pago");
-						String formaPago = rst.getString("dsc_forma_pago");
-						formasPago.put(formaPago, idFormaPago);
-					}
-				}
-			}
-			return formasPago;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

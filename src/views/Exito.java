@@ -16,35 +16,27 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import jdbc.factory.ConnectionFactory;
-
 public class Exito extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
-	private ConnectionFactory connectionFactory;
 
 	/**
 	 * Launch the application.
 	 */
-	/*
-	 * public static void main(String[] args) {
-	 * try {
-	 * //ConnectionFactory conexion = new ConnectionFactory(); // Crea la instancia
-	 * de ConnectionFactory
-	 * Exito dialog = new Exito();
-	 * dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-	 * dialog.setVisible(true);
-	 * } catch (Exception e) {
-	 * e.printStackTrace();
-	 * }
-	 * }
-	 */
+	public static void main(String[] args) {
+		try {
+			Exito dialog = new Exito();
+			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			dialog.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
-	 * Create the dialog.
+	 * Create the frame.
 	 */
-	public Exito(ConnectionFactory conexion) {
-		this.connectionFactory = conexion;
+	public Exito() {
 
 		setIconImage(Toolkit.getDefaultToolkit().getImage(Exito.class.getResource("/imagenes/aH-40px.png")));
 		setBounds(100, 100, 394, 226);
@@ -75,21 +67,20 @@ public class Exito extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						dispose();// sirve para cerrar la ventana actual
-						MenuUsuario usuario = new MenuUsuario(connectionFactory);
-						usuario.setVisible(true);
+						dispose();
+						// sirve para cerrar la ventana actual
+						// MenuUsuario usuario = new MenuUsuario(connectionFactory);
+						// usuario.setVisible(true);
 					}
 				});
 				okButton.setActionCommand("OK");
 				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 			}
-			{
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
-			}
 		}
+
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setVisible(true);
 	}
 
 }

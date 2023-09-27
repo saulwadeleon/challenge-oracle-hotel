@@ -1,6 +1,7 @@
 package jdbc.modelo;
 
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 public class Huespedes {
 	private Integer Id;
@@ -72,6 +73,12 @@ public class Huespedes {
 
 	public void setFechaNacimiento(Date fechaNacimiento) {
 		FechaNacimiento = fechaNacimiento;
+	}
+
+	// Método para obtener la fecha de nacimiento formateada
+	public String getFechaNacimientoFormatted() {
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		return sdf.format(FechaNacimiento);
 	}
 
 	public String getEmailHuesped() {

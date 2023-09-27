@@ -106,26 +106,13 @@ public class Login extends JFrame {
 		labelExit.setHorizontalAlignment(SwingConstants.CENTER);
 
 		txtUsuario = new JTextField();
-		txtUsuario.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (txtUsuario.getText().equals("Ingrese su nombre de usuario")) {
-					txtUsuario.setText("");
-					txtUsuario.setForeground(Color.black);
-				}
-				if (String.valueOf(txtContrasena.getPassword()).isEmpty()) {
-					txtContrasena.setText("********");
-					txtContrasena.setForeground(Color.gray);
-				}
-			}
-		});
 		txtUsuario.setFont(new Font("Roboto", Font.PLAIN, 16));
-		txtUsuario.setText("Ingrese su nombre de usuario");
+		txtUsuario.putClientProperty("JTextField.placeholderText", "Ingrese su nombre de usuario");
 		txtUsuario.setBorder(javax.swing.BorderFactory.createEmptyBorder());
 		txtUsuario.setForeground(SystemColor.activeCaptionBorder);
 		txtUsuario.setBounds(65, 256, 324, 32);
-		panel.add(txtUsuario);
 		txtUsuario.setColumns(10);
+		panel.add(txtUsuario);
 
 		JSeparator separator = new JSeparator();
 		separator.setBackground(new Color(0, 120, 215));
@@ -144,25 +131,29 @@ public class Login extends JFrame {
 		panel.add(separator_1);
 
 		txtContrasena = new JPasswordField();
-		txtContrasena.setText("********");
-		txtContrasena.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (String.valueOf(txtContrasena.getPassword()).equals("********")) {
-					txtContrasena.setText("");
-					txtContrasena.setForeground(Color.black);
-				}
-				if (txtUsuario.getText().isEmpty()) {
-					txtUsuario.setText("Ingrese su nombre de usuario");
-					txtUsuario.setForeground(Color.gray);
-				}
-			}
-		});
+		// txtContrasena.setText("********");
+		txtContrasena.putClientProperty("JPasswordField.placeholderText", "********");
 		txtContrasena.setForeground(SystemColor.activeCaptionBorder);
 		txtContrasena.setFont(new Font("Roboto", Font.PLAIN, 16));
 		txtContrasena.setBorder(javax.swing.BorderFactory.createEmptyBorder());
 		txtContrasena.setBounds(65, 353, 324, 32);
 		panel.add(txtContrasena);
+		/*
+		 * txtContrasena.addMouseListener(new MouseAdapter() {
+		 * 
+		 * @Override
+		 * public void mousePressed(MouseEvent e) {
+		 * if (String.valueOf(txtContrasena.getPassword()).equals("********")) {
+		 * txtContrasena.setText("");
+		 * txtContrasena.setForeground(Color.black);
+		 * }
+		 * if (txtUsuario.getText().isEmpty()) {
+		 * txtUsuario.setText("Ingrese su nombre de usuario");
+		 * txtUsuario.setForeground(Color.gray);
+		 * }
+		 * }
+		 * });
+		 */
 
 		JLabel LabelUsuario = new JLabel("USUARIO");
 		LabelUsuario.setForeground(SystemColor.textInactiveText);
@@ -175,9 +166,6 @@ public class Login extends JFrame {
 		lblContrasea.setFont(new Font("Roboto Black", Font.PLAIN, 20));
 		lblContrasea.setBounds(65, 316, 140, 26);
 		panel.add(lblContrasea);
-
-		// Inicializa la instancia de ConnectionFactory aquí.
-		// connectionFactory = new ConnectionFactory();
 
 		JPanel btnEntrar = new JPanel();
 		btnEntrar.addKeyListener(new KeyAdapter() {
@@ -244,16 +232,6 @@ public class Login extends JFrame {
 		panel.add(header);
 		header.setLayout(null);
 	}
-
-	/*
-	 * private void Login() { String Usuario= "admin"; String Contraseña="admin";
-	 * 
-	 * String contrase=new String (txtContrasena.getPassword());
-	 * 
-	 * if(txtUsuario.getText().equals(Usuario) && contrase.equals(Contraseña)){
-	 * MenuUsuario menu = new MenuUsuario(); menu.setVisible(true); dispose(); }else
-	 * { JOptionPane.showMessageDialog(this, "Usuario o Contraseña no válidos"); } }
-	 */
 
 	private void headerMousePressed(java.awt.event.MouseEvent evt) {
 		xMouse = evt.getX();

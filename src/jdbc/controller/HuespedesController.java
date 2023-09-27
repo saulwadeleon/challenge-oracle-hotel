@@ -2,43 +2,68 @@ package jdbc.controller;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Map;
+
 import jdbc.dao.HuespedesDAO;
 import jdbc.factory.ConnectionFactory;
 import jdbc.modelo.Huespedes;
 
 public class HuespedesController {
 	private HuespedesDAO huespedDAO;
-	private ConnectionFactory connectionFactory; // Agrega una instancia de ConnectionFactory.
 
 	public HuespedesController(ConnectionFactory connectionFactory) {
-		// Connection connection = new ConnectionFactory().recuperarConexion();
-		this.connectionFactory = connectionFactory;
-		this.huespedDAO = new HuespedesDAO(this.connectionFactory);
+		huespedDAO = new HuespedesDAO(connectionFactory);
 	}
 
 	public void guardar(Huespedes huespedes) {
-		this.huespedDAO.guardar(huespedes);
+		huespedDAO.guardar(huespedes);
 	}
 
 	public List<Huespedes> listarHuespedes() {
-		return this.huespedDAO.listarHuespedes();
+		return huespedDAO.listarHuespedes();
+	}
+
+	public Map<String, Integer> obtenerHuespedes() {
+		return huespedDAO.obtenerHuespedes();
 	}
 
 	public List<Huespedes> listarHuespedesId(String id) {
-		return this.huespedDAO.buscarId(id);
+		return huespedDAO.buscarId(id);
 	}
 
-	public boolean existeHuesped(Integer idHuesped) {
-		return this.huespedDAO.existeHuesped(idHuesped);
+	public Huespedes obtenerHuespedPorId(int id) {
+		return huespedDAO.obtenerHuespedPorId(id);
+	}
+
+	/*
+	 * public String obtenerNombreHuesped(int id) {
+	 * return huespedDAO.obtenerNombreHuesped(id);
+	 * }
+	 */
+
+	public String obtenerNombreHuesped(Integer id) {
+		// Utiliza el mapa para obtener el nombre del huésped a partir del ID
+		for (Map.Entry<String, Integer> entry : obtenerHuespedes().entrySet()) {
+			if (entry.getValue().equals(id)) {
+				return entry.getKey();
+			}
+		}
+		// Si el ID no se encuentra, puedes devolver null o algún otro valor
+		// predeterminado
+		return null;
+	}
+
+	public boolean existeHuesped(Integer id) {
+		return huespedDAO.existeHuesped(id);
 	}
 
 	public void actualizar(String nombre, String apellido, Date fechaN, Integer nacionalidad, String email,
 			String telefono, Integer id) {
-		this.huespedDAO.Actualizar(nombre, apellido, fechaN, nacionalidad, email, telefono, id);
+		huespedDAO.Actualizar(nombre, apellido, fechaN, nacionalidad, email, telefono, id);
 	}
 
 	public void Eliminar(Integer id) {
-		this.huespedDAO.Eliminar(id);
+		huespedDAO.Eliminar(id);
 	}
 
 }

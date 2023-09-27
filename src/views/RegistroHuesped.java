@@ -9,18 +9,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-
 import com.toedter.calendar.JDateChooser;
 
 import jdbc.controller.HuespedesController;
@@ -39,14 +29,20 @@ public class RegistroHuesped extends JFrame {
 	private JDateChooser txtFechaN;
 	private JComboBox<String> txtNacionalidad;
 
+	private JLabel labelAtras;
+	private JLabel labelExit;
+	JPanel btnguardar;
+	JPanel btnactualizar;
+	int xMouse, yMouse;
+	private int actualizaHuespedId;
+	private boolean nvoHuesped;
+	private boolean esEdicion;
+
 	private ConnectionFactory connectionFactory;
 	private HuespedesController huespedesController;
 	ListaPaisesController listaPaisesController;
 	ListaPaises listaPaises;
-	private JLabel labelAtras;
-	private JLabel labelExit;
-	int xMouse, yMouse;
-	int id;
+	Huespedes huespedes;
 
 	/**
 	 * Launch the application.
@@ -65,20 +61,38 @@ public class RegistroHuesped extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 * 
-	 */
 	public RegistroHuesped(ConnectionFactory conexion) {
-		this.connectionFactory = conexion;
-		huespedesController = new HuespedesController(connectionFactory);
+		connectionFactory = conexion;
+		inicializarVariables(connectionFactory);
+		initComponents();
+	}
 
-		// Obtener un modelo de lista de países desde el controlador
+	public RegistroHuesped(Huespedes huespedes, ConnectionFactory conexion) {
+		connectionFactory = conexion;
+		esEdicion = true;
+		inicializarVariables(connectionFactory);
+		initComponents();
+		cargarEdicionHuesped(huespedes);
+	}
+
+	public RegistroHuesped(ConnectionFactory conexion, boolean nvoHuesped) {
+		connectionFactory = conexion;
+		this.nvoHuesped = nvoHuesped;
+		inicializarVariables(connectionFactory);
+		initComponents();
+	}
+
+	private void inicializarVariables(ConnectionFactory conexion) {
+		// Inicializar controladores
+		huespedesController = new HuespedesController(connectionFactory);
 		listaPaisesController = new ListaPaisesController(connectionFactory);
 		listaPaises = listaPaisesController.obtenerListaPaises();
 
-		setIconImage(
-				Toolkit.getDefaultToolkit().getImage(RegistroHuesped.class.getResource("/imagenes/lOGO-50PX.png")));
+	}
+
+	private void initComponents() {
+		setIconImage(Toolkit.getDefaultToolkit()
+				.getImage(RegistroHuesped.class.getResource("/imagenes/lOGO-50PX.png")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 910, 634);
 		contentPane = new JPanel();
@@ -114,9 +128,8 @@ public class RegistroHuesped extends JFrame {
 		btnAtras.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				ReservasView reservas = new ReservasView(connectionFactory);
-				reservas.setVisible(true);
-				dispose();
+				MenuUsuario menuUsuario = new MenuUsuario(connectionFactory);
+				menuUsuario.setVisible(true);
 			}
 
 			@Override
@@ -145,12 +158,16 @@ public class RegistroHuesped extends JFrame {
 
 		// Componentes para dejar la interfaz con estilo Material Design
 		JPanel btnexit = new JPanel();
+		btnexit.setLayout(null);
+		btnexit.setBackground(new Color(12, 138, 199));
+		btnexit.setBounds(857, 0, 53, 36);
+		header.add(btnexit);
+
 		btnexit.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				MenuPrincipal principal = new MenuPrincipal();
 				principal.setVisible(true);
-				dispose();
 			}
 
 			@Override
@@ -165,10 +182,6 @@ public class RegistroHuesped extends JFrame {
 				labelExit.setForeground(Color.white);
 			}
 		});
-		btnexit.setLayout(null);
-		btnexit.setBackground(new Color(12, 138, 199));
-		btnexit.setBounds(857, 0, 53, 36);
-		header.add(btnexit);
 
 		labelExit = new JLabel("X");
 		labelExit.setForeground(Color.WHITE);
@@ -315,7 +328,7 @@ public class RegistroHuesped extends JFrame {
 		separator_1_2_5.setBackground(new Color(12, 138, 199));
 		contentPane.add(separator_1_2_5);
 
-		JPanel btnguardar = new JPanel();
+		btnguardar = new JPanel();
 		btnguardar.setBounds(723, 560, 122, 35);
 		btnguardar.addMouseListener(new MouseAdapter() {
 			@Override
@@ -350,6 +363,36 @@ public class RegistroHuesped extends JFrame {
 		logo.setBounds(194, 39, 104, 107);
 		panel.add(logo);
 		logo.setIcon(new ImageIcon(RegistroHuesped.class.getResource("/imagenes/Ha-100px.png")));
+
+		btnactualizar = new JPanel();
+		btnactualizar.setLayout(null);
+		btnactualizar.setBackground(new Color(12, 138, 199));
+		btnactualizar.setBounds(560, 560, 122, 35);
+		btnactualizar.setVisible(false);
+		contentPane.add(btnactualizar);
+
+		if (esEdicion) {
+			btnguardar.setVisible(false);
+			btnactualizar.setVisible(true);
+		} else {
+			btnguardar.setVisible(true);
+			btnactualizar.setVisible(false);
+		}
+
+		btnactualizar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				actualizarHuesped();
+			}
+		});
+
+		JLabel labelActualizar = new JLabel("Actualizar");
+		labelActualizar.setHorizontalAlignment(SwingConstants.CENTER);
+		labelActualizar.setForeground(Color.WHITE);
+		labelActualizar.setFont(new Font("Dialog", Font.PLAIN, 18));
+		labelActualizar.setBounds(0, 0, 122, 35);
+		btnactualizar.add(labelActualizar);
+
 	}
 
 	// Código que permite mover la ventana por la pantalla según la posición de "x"
@@ -375,12 +418,22 @@ public class RegistroHuesped extends JFrame {
 			Integer idPais = listaPaises.obtenerIdPais(nombrePaisSeleccionado);
 
 			if (idPais != null) {
-				Huespedes huespedes = new Huespedes(txtNombre.getText(), txtApellido.getText(),
+				huespedes = new Huespedes(txtNombre.getText(), txtApellido.getText(),
 						java.sql.Date.valueOf(fechaN), idPais, txtEmail.getText(), txtTelefono.getText());
 				this.huespedesController.guardar(huespedes);
-				Exito exito = new Exito(connectionFactory);
+
+				Exito exito = new Exito();
 				exito.setVisible(true);
-				dispose();
+				limpiarCampos();
+
+				// Verifica si nvoHuesped es true antes de abrir ReservasView
+				if (nvoHuesped) {
+					ReservasView view = new ReservasView(huespedes, connectionFactory);
+					view.setVisible(true);
+					dispose();
+
+				}
+
 			} else {
 				JOptionPane.showMessageDialog(this, "Selecciona un país válido.");
 			}
@@ -388,4 +441,86 @@ public class RegistroHuesped extends JFrame {
 			JOptionPane.showMessageDialog(this, "Debes llenar todos los campos.");
 		}
 	}
+
+	public void cargarEdicionHuesped(Huespedes huesped) {
+		this.actualizaHuespedId = huesped.getId();
+		btnguardar.setVisible(false);
+
+		// Obtener el nombre del país desde el mapa
+		String nombrePaisSeleccionado = listaPaises.obtenerNombrePais(huesped.getNacionalidad());
+
+		// Llena los campos de la ventana con los datos del huésped
+		txtNombre.setText(huesped.getNombre());
+		txtApellido.setText(huesped.getApellido());
+		txtFechaN.setDate(huesped.getFechaNacimiento());
+		txtNacionalidad.setSelectedItem(nombrePaisSeleccionado);
+		txtEmail.setText(huesped.getEmailHuesped());
+		txtTelefono.setText(huesped.getTelefono());
+
+		// btnactualizar.setVisible(true);
+
+	}
+
+	private void actualizarHuesped() {
+		if (txtFechaN.getDate() != null && !txtNombre.equals("") && !txtApellido.equals("")) {
+			String fechaN = ((JTextField) txtFechaN.getDateEditor().getUiComponent()).getText();
+			// Obtén el nombre del país seleccionado
+			String nombrePaisSeleccionado = txtNacionalidad.getSelectedItem().toString();
+
+			// Obtén el ID del país desde el mapa
+			Integer idPais = listaPaises.obtenerIdPais(nombrePaisSeleccionado);
+
+			if (idPais != null) {
+				huespedesController.actualizar(txtNombre.getText(), txtApellido.getText(),
+						java.sql.Date.valueOf(fechaN), idPais, txtEmail.getText(), txtTelefono.getText(),
+						actualizaHuespedId);
+				JOptionPane.showMessageDialog(this, String.format("Registro modificado con éxito"));
+
+			} else {
+				JOptionPane.showMessageDialog(this, "Selecciona un país válido.");
+
+			}
+		} else {
+			JOptionPane.showMessageDialog(this, "Debes llenar todos los campos.");
+		}
+		Busqueda busqueda = new Busqueda(connectionFactory);
+		busqueda.setVisible(true);
+		this.dispose();
+		this.setVisible(false);
+
+		btnactualizar.setVisible(false);
+		btnguardar.setVisible(true);
+
+	}
+
+	private void limpiarCampos() {
+		txtNombre.setText("");
+		txtApellido.setText("");
+		txtFechaN.setDate(null);
+		txtNacionalidad.setSelectedItem(null);
+		txtEmail.setText("");
+		txtTelefono.setText("");
+	}
+
+	/*
+	 * // Configura un temporizador para abrir ReservasView después de un retraso
+	 * import java.util.Timer;
+	 * Timer timer = new Timer();
+	 * TimerTask task = new TimerTask() {
+	 * 
+	 * @Override
+	 * public void run() {
+	 * // Verifica si nvoHuesped es true antes de abrir ReservasView
+	 * if (nvoHuesped) {
+	 * ReservasView view = new ReservasView(huespedes, connectionFactory);
+	 * view.setVisible(true);
+	 * dispose();
+	 * }
+	 * }
+	 * };
+	 * 
+	 * // Establece el retraso en milisegundos (por ejemplo, 2000 ms = 2 segundos)
+	 * int delay = 5000; // Cambia esto según la duración deseada
+	 * timer.schedule(task, delay);
+	 */
 }
