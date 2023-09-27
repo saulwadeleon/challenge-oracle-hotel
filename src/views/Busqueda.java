@@ -546,8 +546,12 @@ public class Busqueda extends JFrame {
 		return this.huespedesController.listarHuespedes();
 	}
 
-	private List<Huespedes> BuscarHuespedesId() {
-		return this.huespedesController.listarHuespedesId(txtBuscar.getText());
+	// private List<Huespedes> BuscarHuespedesId() {
+	// return this.huespedesController.listarHuespedesId(txtBuscar.getText());
+	// }
+
+	private List<Huespedes> BuscarHuespedesApellido() {
+		return this.huespedesController.buscarHuespedApellido(txtBuscar.getText());
 	}
 
 	private void limpiarTabla() {
@@ -601,7 +605,7 @@ public class Busqueda extends JFrame {
 
 	private void LlenarTablaHuespedesId() {
 		// Llenar Tabla
-		List<Huespedes> huesped = BuscarHuespedesId();
+		List<Huespedes> huesped = BuscarHuespedesApellido();
 		try {
 			for (Huespedes huespedes : huesped) {
 				modeloHuesped.addRow(new Object[] { huespedes.getId(), huespedes.getNombre(), huespedes.getApellido(),

@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="src/lib/mchange-commons-java-0.2.16.jar"/>
 	<classpathentry kind="lib" path="src/lib/mysql-connector-j-8.0.32.jar"/>
 	<classpathentry kind="lib" path="src/lib/jbcrypt-0.4.jar"/>
+	<classpathentry kind="lib" path="src/lib/swingx-1.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

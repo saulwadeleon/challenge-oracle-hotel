@@ -14,11 +14,13 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 public class Exito extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
+	JLabel lblNewLabel_1;
 
 	/**
 	 * Launch the application.
@@ -39,7 +41,7 @@ public class Exito extends JDialog {
 	public Exito() {
 
 		setIconImage(Toolkit.getDefaultToolkit().getImage(Exito.class.getResource("/imagenes/aH-40px.png")));
-		setBounds(100, 100, 394, 226);
+		setBounds(100, 100, 394, 260);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(SystemColor.control);
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -53,15 +55,16 @@ public class Exito extends JDialog {
 			contentPanel.add(lblNewLabel);
 		}
 		{
-			JLabel lblNewLabel_1 = new JLabel("Datos guardados satisfactoriamente");
+			lblNewLabel_1 = new JLabel("Datos guardados satisfactoriamente");
 			lblNewLabel_1.setForeground(new Color(12, 138, 199));
 			lblNewLabel_1.setFont(new Font("Arial", Font.BOLD, 18));
-			lblNewLabel_1.setBounds(27, 122, 322, 21);
+			lblNewLabel_1.setBounds(25, 108, 324, 80);
+			lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
 			contentPanel.add(lblNewLabel_1);
 		}
 		{
 			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+			buttonPane.setLayout(new FlowLayout(FlowLayout.CENTER));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
 				JButton okButton = new JButton("OK");
@@ -81,6 +84,10 @@ public class Exito extends JDialog {
 
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setVisible(true);
+	}
+
+	public void mensaje(String string) {
+		lblNewLabel_1.setText(string);
 	}
 
 }

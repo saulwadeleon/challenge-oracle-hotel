@@ -20,7 +20,7 @@ public class TipoHabitacionDAO {
 	public Map<String, Integer> listarTipoHabitacion() {
 		Map<String, Integer> tiposHabitacion = new HashMap<>();
 		try (Connection connection = connectionFactory.recuperarConexion()) {
-			String sql = "SELECT id_tipo_habitacion, nombre_tipo_habitacion, precio_habitacion FROM tipos_habitaciones";
+			String sql = "SELECT id_tipo_habitacion, nombre_tipo_habitacion, precio_habitacion FROM tipos_habitaciones ORDER BY id_tipo_habitacion";
 			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
 				pstm.execute();
 				try (ResultSet rst = pstm.getResultSet()) {

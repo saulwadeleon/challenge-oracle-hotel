@@ -168,6 +168,7 @@ public class RegistroHuesped extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				MenuPrincipal principal = new MenuPrincipal();
 				principal.setVisible(true);
+				dispose();
 			}
 
 			@Override
@@ -409,7 +410,7 @@ public class RegistroHuesped extends JFrame {
 	}
 
 	private void guardarHuesped() {
-		if (txtFechaN.getDate() != null && !txtNombre.equals("") && !txtApellido.equals("")) {
+		if (txtFechaN.getDate() != null && !txtNombre.getText().isEmpty() && !txtApellido.getText().isEmpty()) {
 			String fechaN = ((JTextField) txtFechaN.getDateEditor().getUiComponent()).getText();
 			// Obtén el nombre del país seleccionado
 			String nombrePaisSeleccionado = txtNacionalidad.getSelectedItem().toString();
@@ -462,7 +463,7 @@ public class RegistroHuesped extends JFrame {
 	}
 
 	private void actualizarHuesped() {
-		if (txtFechaN.getDate() != null && !txtNombre.equals("") && !txtApellido.equals("")) {
+		if (txtFechaN.getDate() != null && !txtNombre.getText().isEmpty() && !txtApellido.getText().isEmpty()) {
 			String fechaN = ((JTextField) txtFechaN.getDateEditor().getUiComponent()).getText();
 			// Obtén el nombre del país seleccionado
 			String nombrePaisSeleccionado = txtNacionalidad.getSelectedItem().toString();
@@ -483,10 +484,9 @@ public class RegistroHuesped extends JFrame {
 		} else {
 			JOptionPane.showMessageDialog(this, "Debes llenar todos los campos.");
 		}
-		Busqueda busqueda = new Busqueda(connectionFactory);
-		busqueda.setVisible(true);
+		MenuUsuario menuUsuario = new MenuUsuario(connectionFactory);
+		menuUsuario.setVisible(true);
 		this.dispose();
-		this.setVisible(false);
 
 		btnactualizar.setVisible(false);
 		btnguardar.setVisible(true);

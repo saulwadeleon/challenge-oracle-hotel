@@ -23,7 +23,7 @@ public class HuespedesDAO {
 
 	public void guardar(Huespedes huesped) {
 		try (Connection connection = connectionFactory.recuperarConexion()) {
-			String sql = "INSERT INTO huespedes (nombre_huesped, aprellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped) VALUES (?, ?, ?, ?, ?, ?)";
+			String sql = "INSERT INTO huespedes (nombre_huesped, apellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped) VALUES (?, ?, ?, ?, ?, ?)";
 
 			try (PreparedStatement pstm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -50,7 +50,7 @@ public class HuespedesDAO {
 	public List<Huespedes> listarHuespedes() {
 		List<Huespedes> huespedes = new ArrayList<Huespedes>();
 		try (Connection connection = connectionFactory.recuperarConexion()) {
-			String sql = "SELECT id_huesped, nombre_huesped, aprellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes";
+			String sql = "SELECT id_huesped, nombre_huesped, apellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes";
 
 			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
 				pstm.execute();
@@ -88,7 +88,7 @@ public class HuespedesDAO {
 		List<Huespedes> huespedes = new ArrayList<Huespedes>();
 		try (Connection connection = connectionFactory.recuperarConexion()) {
 
-			String sql = "SELECT id_huesped, nombre_huesped, aprellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes WHERE id_huesped = ?";
+			String sql = "SELECT id_huesped, nombre_huesped, apellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes WHERE id_huesped = ?";
 
 			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
 				pstm.setString(1, id);
@@ -102,17 +102,35 @@ public class HuespedesDAO {
 		}
 	}
 
+	public List<Huespedes> buscarApellido(String apellido) {
+		List<Huespedes> huespedes = new ArrayList<Huespedes>();
+		try (Connection connection = connectionFactory.recuperarConexion()) {
+
+			String sql = "SELECT id_huesped, nombre_huesped, apellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes WHERE apellido_huesped LIKE ?";
+
+			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
+				pstm.setString(1, "%" + apellido + "%");
+				pstm.execute();
+
+				transformarResultSetEnHuesped(huespedes, pstm);
+			}
+			return huespedes;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public Huespedes obtenerHuespedPorId(int id) {
 		Huespedes huesped = null;
 		try (Connection connection = connectionFactory.recuperarConexion()) {
-			String sql = "SELECT nombre_huesped, aprellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes WHERE id_huesped = ?";
+			String sql = "SELECT nombre_huesped, apellido_huesped, fechaNacimiento_huesped, nacionalidad_id, email_huesped, telefono_huesped FROM huespedes WHERE id_huesped = ?";
 			try (PreparedStatement pstm = connection.prepareStatement(sql)) {
 				pstm.setInt(1, id); // Establece el valor del parámetro ID
 				try (ResultSet rs = pstm.executeQuery()) {
 					if (rs.next()) {
 						// Recupera los datos del huésped de la consulta
 						String nombre = rs.getString("nombre_huesped");
-						String apellido = rs.getString("aprellido_huesped");
+						String apellido = rs.getString("apellido_huesped");
 						Date fechaNacimiento = rs.getDate("fechaNacimiento_huesped");
 						int nacionalidad = rs.getInt("nacionalidad_id");
 						String email = rs.getString("email_huesped");
@@ -153,7 +171,7 @@ public class HuespedesDAO {
 		try (Connection connection = connectionFactory.recuperarConexion()) {
 			try (PreparedStatement stm = connection
 					.prepareStatement(
-							"UPDATE huespedes SET nombre_huesped = ?, aprellido_huesped = ?, fechaNacimiento_huesped = ?, nacionalidad_id = ?, email_huesped = ?, telefono_huesped = ? WHERE id_huesped = ?")) {
+							"UPDATE huespedes SET nombre_huesped = ?, apellido_huesped = ?, fechaNacimiento_huesped = ?, nacionalidad_id = ?, email_huesped = ?, telefono_huesped = ? WHERE id_huesped = ?")) {
 				stm.setString(1, nombre);
 				stm.setString(2, apellido);
 				stm.setDate(3, fechaN);

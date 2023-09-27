@@ -19,7 +19,9 @@ import java.util.Random;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.plaf.basic.BasicComboBoxEditor;
+
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+
 import com.toedter.calendar.JDateChooser;
 
 import jdbc.controller.FormaPagoController;
@@ -60,7 +62,7 @@ public class ReservasView extends JFrame {
 
 	JPanel btnGuardar;
 	JPanel btnActualizar;
-	JPanel btnAgregarCliente;
+	JPanel btnAgregarHuesped;
 
 	/**
 	 * Launch the application.
@@ -79,6 +81,9 @@ public class ReservasView extends JFrame {
 		});
 	}
 
+	/**
+	 * @wbp.parser.constructor
+	 */
 	public ReservasView(ConnectionFactory conexion) {
 		connectionFactory = conexion;
 		inicializarVariables(connectionFactory);
@@ -153,26 +158,37 @@ public class ReservasView extends JFrame {
 		huespedMap = huespedesController.obtenerHuespedes();
 
 		// Agregar los nombres de huéspedes al modelo del JComboBox
-		modeloComboBoxHuesped.addAll(huespedMap.keySet());
+		for (Map.Entry<String, Integer> entry : huespedMap.entrySet()) {
+			modeloComboBoxHuesped.addElement(entry.getKey());
+		}
 
 		// Asignar el modelo al JComboBox
 		txtHuesped.setModel(modeloComboBoxHuesped);
 
 		// Establecer el JComboBox como editable
+		txtHuesped.setSelectedItem(null);
 		txtHuesped.setEditable(true);
 
-		// Establecer un editor personalizado para el JComboBox
-		txtHuesped.setEditor(new BasicComboBoxEditor());
+		// Decorar el JComboBox con AutoCompleteDecorator
+		AutoCompleteDecorator.decorate(txtHuesped);
 
 		// Botón para agregar nuevo huésped junto al campo de búsqueda
-		btnAgregarCliente = new JPanel();
-		btnAgregarCliente.setBounds(322, 100, 35, 35);
-		panel.add(btnAgregarCliente);
-		btnAgregarCliente.setBackground(new Color(12, 138, 199));
-		btnAgregarCliente.setLayout(null);
-		btnAgregarCliente.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnAgregarHuesped = new JPanel();
+		btnAgregarHuesped.setBounds(322, 100, 35, 35);
+		panel.add(btnAgregarHuesped);
+		btnAgregarHuesped.setBackground(new Color(12, 138, 199));
+		btnAgregarHuesped.setLayout(null);
+		btnAgregarHuesped.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
-		btnAgregarCliente.addMouseListener(new MouseAdapter() {
+		JLabel lblGuardar_1 = new JLabel("...");
+		lblGuardar_1.setToolTipText("Registrar Huesped");
+		lblGuardar_1.setHorizontalAlignment(SwingConstants.CENTER);
+		lblGuardar_1.setForeground(Color.WHITE);
+		lblGuardar_1.setFont(new Font("Dialog", Font.PLAIN, 18));
+		lblGuardar_1.setBounds(0, 0, 35, 35);
+		btnAgregarHuesped.add(lblGuardar_1);
+
+		btnAgregarHuesped.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				agregarNvoHuesped();
@@ -180,11 +196,11 @@ public class ReservasView extends JFrame {
 		});
 
 		// Separador después del campo de cliente
-		JSeparator separatorCliente = new JSeparator();
-		separatorCliente.setForeground(SystemColor.textHighlight);
-		separatorCliente.setBounds(68, 135, 289, 2);
-		separatorCliente.setBackground(SystemColor.textHighlight);
-		panel.add(separatorCliente);
+		JSeparator separatorHuesped = new JSeparator();
+		separatorHuesped.setForeground(SystemColor.textHighlight);
+		separatorHuesped.setBounds(68, 135, 289, 2);
+		separatorHuesped.setBackground(SystemColor.textHighlight);
+		panel.add(separatorHuesped);
 
 		// ComboBox para seleccionar el tipo de habitación
 		txtTipoHabitacion = new JComboBox<>();
@@ -544,42 +560,51 @@ public class ReservasView extends JFrame {
 	}
 
 	private void guardarReserva() {
-		String fechaE = ((JTextField) txtFechaE.getDateEditor().getUiComponent()).getText();
-		String fechaS = ((JTextField) txtFechaS.getDateEditor().getUiComponent()).getText();
 
-		if (validarFechas(fechaE, fechaS)) {
+		if (txtHuesped.getSelectedItem() != null && txtTipoHabitacion.getSelectedItem() != null
+				&& txtFechaE.getDate() != null && txtFechaS.getDate() != null
+				&& txtFormaPago.getSelectedItem() != null) {
+			String fechaE = ((JTextField) txtFechaE.getDateEditor().getUiComponent()).getText();
+			String fechaS = ((JTextField) txtFechaS.getDateEditor().getUiComponent()).getText();
 
-			// Obtén el nombre del tipo de habitacion y forma de pago seleccionado
-			String nombreHuespedSeleccionado = txtHuesped.getSelectedItem().toString();
-			String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
-			String formaPagoSeleccionada = txtFormaPago.getSelectedItem().toString();
+			if (validarFechas(fechaE, fechaS)) {
+				calcularValor(txtFechaE, txtFechaS);
+				// Obtén el nombre del tipo de habitacion y forma de pago seleccionado
+				String nombreHuespedSeleccionado = txtHuesped.getSelectedItem().toString();
+				String tipoHabitacionSeleccionado = txtTipoHabitacion.getSelectedItem().toString();
+				String formaPagoSeleccionada = txtFormaPago.getSelectedItem().toString();
 
-			// Obtén el ID del tipo de habitacion y forma de pago desde el mapa
-			Integer idHuesped = huespedMap.get(nombreHuespedSeleccionado);
-			Integer idTipoHabitacion = tiposHabitacionMap.get(tipoHabitacionSeleccionado);
-			Integer idFormaPago = formasPagoMap.get(formaPagoSeleccionada);
+				// Obtén el ID del tipo de habitacion y forma de pago desde el mapa
+				Integer idHuesped = huespedMap.get(nombreHuespedSeleccionado);
+				Integer idTipoHabitacion = tiposHabitacionMap.get(tipoHabitacionSeleccionado);
+				Integer idFormaPago = formasPagoMap.get(formaPagoSeleccionada);
 
-			// Valida que el huesped exista en la tabla de huespedes
-			boolean huespedExiste = huespedesController.existeHuesped(idHuesped);
-			if (!huespedExiste) {
-				JOptionPane.showMessageDialog(null,
-						"El huesped no existe. Para realizar una reserva, debe registrar un huesped");
-				return;
+				// Valida que el huesped exista en la tabla de huespedes
+				boolean huespedExiste = huespedesController.existeHuesped(idHuesped);
+				if (!huespedExiste) {
+					JOptionPane.showMessageDialog(null,
+							"El huesped no existe. Para realizar una reserva, debe registrar un huesped");
+					return;
+				}
+
+				String numeroReservacion = generarNumeroReserva();
+				txtNumeroReserva.setText(numeroReservacion);
+
+				Reserva nuevaReserva = new Reserva(idHuesped,
+						idTipoHabitacion, java.sql.Date.valueOf(fechaE),
+						java.sql.Date.valueOf(fechaS),
+						txtValor.getText(), idFormaPago,
+						numeroReservacion);
+				reservasController.guardar(nuevaReserva);
+
+				Exito exito = new Exito();
+				String mensaje = "<html>Reserva guardada con exito.<br/>Reserva Num.: </html>" + numeroReservacion;
+				exito.mensaje(mensaje);
+				exito.setVisible(true);
+				limpiarCampos();
 			}
-
-			String numeroReservacion = generarNumeroReserva();
-			txtNumeroReserva.setText(numeroReservacion);
-
-			Reserva nuevaReserva = new Reserva(idHuesped,
-					idTipoHabitacion, java.sql.Date.valueOf(fechaE),
-					java.sql.Date.valueOf(fechaS),
-					txtValor.getText(), idFormaPago,
-					numeroReservacion);
-			reservasController.guardar(nuevaReserva);
-
-			Exito exito = new Exito();
-			exito.setVisible(true);
-			limpiarCampos();
+		} else {
+			JOptionPane.showMessageDialog(this, "Debes llenar todos los campos.");
 		}
 
 		// Busqueda verReserva = new Busqueda(connectionFactory);
